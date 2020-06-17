@@ -13,8 +13,6 @@
 
 // use Illuminate\Routing\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/','PostsController@index');
 
 Route::resource('posts','PostsController');
