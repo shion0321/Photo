@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Post;
 
 class PostsController extends Controller
 {
@@ -12,8 +13,9 @@ class PostsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        return view('posts.index');
+    {	
+				$posts = Post::all();
+        return view('posts.index',compact('posts'));
     }
 
     /**
@@ -34,7 +36,11 @@ class PostsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+			$posts = new Post;
+			$posts->description = $request->description;
+			$posts->save();
+
+			return redirect()->route('posts.index');
     }
 
     /**
@@ -44,8 +50,10 @@ class PostsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
-        //
+    {	
+				$posts = Post::find($id);
+
+        return view('posts.show',compact('posts'));
     }
 
     /**
@@ -56,7 +64,9 @@ class PostsController extends Controller
      */
     public function edit($id)
     {
-        //
+			$posts = Post::find($id);
+
+			return view('posts.edit', compact('posts'));
     }
 
     /**
@@ -68,7 +78,11 @@ class PostsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+				$post = Post::find($id);
+				$post->description = $request->description;
+				$post->save();
+
+				return redirect()->route('posts.index');
     }
 
     /**
@@ -79,6 +93,8 @@ class PostsController extends Controller
      */
     public function destroy($id)
     {
-        //
+			$post = Post::find($id);
+			$post->delete();
+			return redirect()->route('posts.index');
     }
 }
