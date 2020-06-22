@@ -38,6 +38,19 @@ class PostsController extends Controller
     {
 			$posts = new Post;
 			$posts->description = $request->description;
+
+			if ($file = $request->photo_image) {
+				//保存するファイルに名前をつける    
+				$fileName = time() . '.' . $file->getClientOriginalExtension();
+				//Laravel直下のpublicディレクトリに新フォルダをつくり保存する
+				$target_path = public_path('/uploads/');
+				$file->move($target_path, $fileName);
+			} else {
+				//画像が登録されなかった時はから文字をいれる
+				$name = "";
+			}
+			$posts->photo_image = $request->photo_image;
+
 			$posts->save();
 
 			return redirect()->route('posts.index');
