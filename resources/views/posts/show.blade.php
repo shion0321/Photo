@@ -2,6 +2,7 @@
 <a href="{{ route('posts.index') }}">一覧に戻る</a>
 	<p>{{ $posts["id"] }}</p> 
 	<p>{{ $posts["description"] }}</p> 
+	<img src="/uploads/{{ $posts["photo_image"] }}">
 	<a href="{{ route('posts.edit',['post'=> $posts["id"]]) }}">編集</a>
 	<form action="{{ route('posts.destroy',['post'=> $posts["id"]]) }}" method="POST">
 		@method('DELETE')
