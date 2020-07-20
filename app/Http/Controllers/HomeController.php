@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Post;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -14,7 +17,8 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    }
+		}
+		
 
     /**
      * Show the application dashboard.
@@ -22,7 +26,9 @@ class HomeController extends Controller
      * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
-    {
-        return view('home');
+    {		
+				# 現在のログインユーザーのuser_idのpostを取得
+				// $posts = User::find(Auth::id())->post;
+        return redirect()->route('posts.index');
     }
 }
