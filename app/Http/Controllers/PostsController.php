@@ -4,111 +4,126 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Post;
+use App\User;
+use Illuminate\Support\Facades\Auth;
 
 class PostsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {	
-				$posts = Post::all();
-        return view('posts.index',compact('posts'));
-    }
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return \Illuminate\Http\Response
+	 */
+	public function index()
+	{
+		if (Auth::id()) {
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return view('posts.create');
-    }
+			$posts = Post::latest()->get();
+			# 1 + N 問題
+			# ここ意味わからないから調べる
+			$posts->load('user','comments.user','likes');
+		} else {
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-			$posts = new Post;
-			$posts->description = $request->description;
+			$posts = Post::all();
+		}
 
-			# 画像アップロード
+		return view('posts.index', compact('posts'));
+	}
+
+	/**
+	 * Show the form for creating a new resource.
+	 *
+	 * @return \Illuminate\Http\Response
+	 */
+	public function create()
+	{
+		return view('posts.create');
+	}
+
+	/**
+	 * Store a newly created resource in storage.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function store(Request $request)
+	{
+		$posts = new Post;
+		$posts->user_id = Auth::id();
+		$posts->description = $request->description;
+
+		# 画像アップロード
+		if (isset($request->photo_image)) {
+
 			if ($request->photo_image->isValid()) {
 				#
 				$fileName = $request->file('photo_image')->getClientOriginalName();
+				# storage以下のディレクトリ
+				$request->file('photo_image')->storeAs('public/post_images', $fileName);
+				# public以下のディレクトリ 
+				$fullFilePath = '/storage/post_images/' . $fileName;
 
-				$request->file('photo_image')->storeAs('public/images',$fileName);
-
-				$fullFilePath = '/storage/images/'.$fileName;
-
+				$posts->photo_image = $fullFilePath;
 			}
-			
-			$posts->photo_image = $fullFilePath;
+		}
 
-			$posts->save();
+		$posts->save();
 
-			return redirect()->route('posts.index');
-    }
+		return redirect()->route('posts.index');
+	}
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {	
-				$post = Post::find($id);
+	/**
+	 * Display the specified resource.
+	 *
+	 * @param  int  $id
+	 * @return \Illuminate\Http\Response
+	 */
+	public function show($id)
+	{
+		$post = Post::find($id);
 
-        return view('posts.show',compact('post'));
-    }
+		return view('posts.show', compact('post'));
+	}
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-			$posts = Post::find($id);
+	/**
+	 * Show the form for editing the specified resource.
+	 *
+	 * @param  int  $id
+	 * @return \Illuminate\Http\Response
+	 */
+	public function edit($id)
+	{
+		$posts = Post::find($id);
 
-			return view('posts.edit', compact('posts'));
-    }
+		return view('posts.edit', compact('posts'));
+	}
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-				$post = Post::find($id);
-				$post->description = $request->description;
-				$post->save();
+	/**
+	 * Update the specified resource in storage.
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @param  int  $id
+	 * @return \Illuminate\Http\Response
+	 */
+	public function update(Request $request, $id)
+	{
+		$post = Post::find($id);
+		$post->description = $request->description;
+		$post->save();
 
-				return redirect()->route('posts.index');
-    }
+		return redirect()->route('posts.index');
+	}
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-			$post = Post::find($id);
-			$post->delete();
-			return redirect()->route('posts.index');
-    }
+	/**
+	 * Remove the specified resource from storage.
+	 *
+	 * @param  int  $id
+	 * @return \Illuminate\Http\Response
+	 */
+	public function destroy($id)
+	{
+		$post = Post::find($id);
+		$post->delete();
+		return redirect()->route('posts.index');
+	}
 }
