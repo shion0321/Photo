@@ -10951,3 +10951,7 @@ a.text-dark:focus {
 	border-color:gray;
 	padding:10px 10px;
 }
+
+.sp-container{
+	width:60%;
+}
