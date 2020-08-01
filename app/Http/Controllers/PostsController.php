@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Post;
+use App\Tag;
 use App\User;
 use Illuminate\Support\Facades\Auth;
 
 class PostsController extends Controller
-{
+{	
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -24,7 +25,7 @@ class PostsController extends Controller
 			$posts->load('user','comments.user','likes');
 		} else {
 
-			$posts = Post::all();
+			$posts = Post::latest()->get();
 		}
 
 		return view('posts.index', compact('posts'));
@@ -49,26 +50,21 @@ class PostsController extends Controller
 	public function store(Request $request)
 	{
 		$posts = new Post;
+		$posts->fill($request->all());
 		$posts->user_id = Auth::id();
-		$posts->description = $request->description;
 
 		# 画像アップロード
 		if (isset($request->photo_image)) {
 
-			if ($request->photo_image->isValid()) {
-				#
-				$fileName = $request->file('photo_image')->getClientOriginalName();
-				# storage以下のディレクトリ
-				$request->file('photo_image')->storeAs('public/post_images', $fileName);
-				# public以下のディレクトリ 
-				$fullFilePath = '/storage/post_images/' . $fileName;
-
-				$posts->photo_image = $fullFilePath;
-			}
+			$fullFilePath = $this->_edit_post_image($request);
+			$posts->photo_image = $fullFilePath;
 		}
 
-		$posts->save();
+		$tags_id = $this->_add_tag($request);
 
+		$posts->save();
+		$posts->tags()->attach($tags_id);
+		
 		return redirect()->route('posts.index');
 	}
 
@@ -126,4 +122,47 @@ class PostsController extends Controller
 		$post->delete();
 		return redirect()->route('posts.index');
 	}
+
+	public function search(Request $request)
+	{	
+		$posts = Post::where('description','like',"%{$request->description}%")->get();
+
+		return view('posts.index', compact('posts'));
+	}
+
+	/*
+	 処理まとめ
+	*/
+
+	private function _edit_post_image( $request )
+	{
+		$fileName = $request->file('photo_image')->getClientOriginalName();
+		# storage以下のディレクトリ
+		$request->file('photo_image')->storeAs('public/post_images', $fileName);
+		# public以下のディレクトリ 
+		$fullFilePath = '/storage/post_images/' . $fileName;
+
+		return $fullFilePath;
+	}
+
+	private function _add_tag($request)
+	{
+		preg_match_all('/#([a-zA-z0-9０-９ぁ-んァ-ヶ亜-熙]+)/u', $request->tags, $match);
+		$tags = [];
+		// $matchの中でも#が付いていない方を使用する(配列番号で言うと1)
+		foreach ($match[1] as $tag) {
+
+			// dd($tag);
+			// firstOrCreateで重複を防ぎながらタグを作成している。
+			$record = Tag::firstOrCreate(['name' => $tag]);
+			array_push($tags, $record);
+		}
+
+		$tags_id = [];
+		foreach ($tags as $tag) {
+			array_push($tags_id, $tag->id);
+		}
+
+		return $tags_id;
+	}		
 }
