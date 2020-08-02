@@ -19,13 +19,13 @@ class PostsController extends Controller
 	{
 		if (Auth::id()) {
 
-			$posts = Post::latest()->get();
+			$posts = Post::latest()->simplePaginate(5);
 			# 1 + N 問題
 			# ここ意味わからないから調べる
 			$posts->load('user','comments.user','likes');
 		} else {
 
-			$posts = Post::latest()->get();
+			$posts = Post::latest()->simplePaginate(5);
 		}
 
 		return view('posts.index', compact('posts'));
@@ -125,7 +125,7 @@ class PostsController extends Controller
 
 	public function search(Request $request)
 	{	
-		$posts = Post::where('description','like',"%{$request->description}%")->get();
+		$posts = Post::where('description','like',"%{$request->description}%")->simplePaginate(5);
 
 		return view('posts.index', compact('posts'));
 	}
