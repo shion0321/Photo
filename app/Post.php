@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 use App\User;
 use App\Comment;
+use App\Tag;
 use Illuminate\Support\Facades\Auth;
 
 class Post extends Model
-{	
+{
+	protected $fillable = [
+		'description'
+	];
 
 	protected $appends = [
 		'is_like',
@@ -38,5 +42,10 @@ class Post extends Model
 	public function getIsLikeAttribute()
 	{
 		return Like::buildQueryByUserIdAndPostId(Auth::id(), $this->id)->exists();
+	}
+
+	public function tags()
+	{
+		return $this->belongsToMany(Tag::class,'post_tags');
 	}
 }
