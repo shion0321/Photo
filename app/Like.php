@@ -18,7 +18,7 @@ class Like extends Model
 		# code...
 	}
 
-	public function scopeBuildQueryByUserIdAndPostId($query,int $user_id,int $post_id): Builder
+	public function scopeBuildQueryByUserIdAndPostId($query,int $user_id = null,int $post_id = null): Builder
 	{
 		return $query->where('user_id',$user_id)
 					 ->where('post_id',$post_id);
